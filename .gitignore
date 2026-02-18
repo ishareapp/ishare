@@ -1,0 +1,36 @@
+# ======================
+# Python / Django
+# ======================
+backend/venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+media/
+
+# Environment variables
+.env
+
+# ======================
+# Flutter / Dart
+# ======================
+build/
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# ======================
+# VS Code / IDE
+# ======================
+.vscode/
+.idea/
+
+# ======================
+# OS Files
+# ======================
+.DS_Store
+Thumbs.db

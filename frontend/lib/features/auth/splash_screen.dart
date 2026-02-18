@@ -1,0 +1,650 @@
+import 'dart:async';
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../auth/auth_screen.dart';
+import '../auth/onboarding_screen.dart';
+import '../../core/services/storage_service.dart';
+import '../../navigation/main_navigation.dart';
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
+
+  late AnimationController _logoController;
+  late AnimationController _contentController;
+  late AnimationController _featuresController;
+  late AnimationController _bgController;
+  late AnimationController _pulseController;
+
+  late Animation<double> _logoScale;
+  late Animation<double> _logoFade;
+  late Animation<double> _logoRotate;
+  late Animation<double> _contentFade;
+  late Animation<Offset> _contentSlide;
+  late Animation<double> _featuresFade;
+  late Animation<double> _bgAnimation;
+  late Animation<double> _pulseAnimation;
+
+  int _currentFeature = 0;
+  Timer? _featureTimer;
+  bool _showFeatures = false;
+
+  final List<Map<String, dynamic>> _features = [
+    {
+      'icon': Icons.route_rounded,
+      'title': 'Smart Ride Sharing',
+      'subtitle': 'Connect drivers & passengers across Rwanda',
+    },
+    {
+      'icon': Icons.calendar_month_rounded,
+      'title': 'Schedule Rides',
+      'subtitle': 'Daily, weekend or monthly recurring trips',
+    },
+    {
+      'icon': Icons.my_location_rounded,
+      'title': 'Live Tracking',
+      'subtitle': 'Real-time GPS tracking for safety',
+    },
+    {
+      'icon': Icons.sos_rounded,
+      'title': 'SOS Emergency',
+      'subtitle': 'One-tap emergency alerts & contacts',
+    },
+    {
+      'icon': Icons.account_balance_wallet_rounded,
+      'title': 'Digital Wallet',
+      'subtitle': 'MTN MoMo & Airtel Money payments',
+    },
+    {
+      'icon': Icons.language_rounded,
+      'title': '3 Languages',
+      'subtitle': 'English • Français • Ikinyarwanda',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _initAnimations();
+    _startSequence();
+  }
+
+  void _initAnimations() {
+    _logoController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
+    );
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _logoController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
+    _logoRotate = Tween<double>(begin: -0.1, end: 0.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
+    );
+
+    _contentController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _contentFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _contentController, curve: Curves.easeIn),
+    );
+    _contentSlide = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _contentController, curve: Curves.easeOutCubic),
+    );
+
+    _featuresController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _featuresFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _featuresController, curve: Curves.easeIn),
+    );
+
+    _bgController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat();
+    _bgAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_bgController);
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  void _startSequence() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) _logoController.forward();
+
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (mounted) _contentController.forward();
+
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      setState(() => _showFeatures = true);
+      _featuresController.forward();
+    }
+
+    _featureTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (mounted) {
+        _featuresController.reverse().then((_) {
+          if (mounted) {
+            setState(() {
+              _currentFeature = (_currentFeature + 1) % _features.length;
+            });
+            _featuresController.forward();
+          }
+        });
+      }
+    });
+  }
+
+  Future<void> _navigate() async {
+    if (!mounted) return;
+    _featureTimer?.cancel();
+
+    final token = await StorageService.getToken();
+
+    // Check if first time user
+    final prefs = await SharedPreferences.getInstance();
+    final seenOnboarding = prefs.getBool('onboarding_seen') ?? false;
+
+    if (!mounted) return;
+
+    if (token != null && token.isNotEmpty) {
+      // Already logged in → go home
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 800),
+          pageBuilder: (_, __, ___) => const MainNavigation(),
+          transitionsBuilder: (_, animation, __, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      );
+    } else if (!seenOnboarding) {
+      // First time → show onboarding
+      await prefs.setBool('onboarding_seen', true);
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 800),
+          pageBuilder: (_, __, ___) => const OnboardingScreen(),
+          transitionsBuilder: (_, animation, __, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      );
+    } else {
+      // Returning user → go to login
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 800),
+          pageBuilder: (_, __, ___) => const AuthScreen(),
+          transitionsBuilder: (_, animation, __, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _logoController.dispose();
+    _contentController.dispose();
+    _featuresController.dispose();
+    _bgController.dispose();
+    _pulseController.dispose();
+    _featureTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── Car background image ──
+          Image.asset(
+            'assets/images/car_bg.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+
+          // ── Light overlay - image stays visible ──
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.05),
+                  Colors.black.withOpacity(0.15),
+                  Colors.black.withOpacity(0.75),
+                ],
+                stops: const [0.0, 0.35, 1.0],
+              ),
+            ),
+          ),
+
+          // ── Animated sparkles ──
+          AnimatedBuilder(
+            animation: _bgAnimation,
+            builder: (context, _) {
+              return Stack(
+                children: [
+                  Positioned(
+                    top: size.height * 0.15,
+                    left: size.width * 0.1,
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF3B82F6).withOpacity(
+                          0.4 + math.sin(_bgAnimation.value * math.pi * 4) * 0.4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF3B82F6).withOpacity(0.6),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: size.height * 0.22,
+                    right: size.width * 0.12,
+                    child: Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(
+                          0.3 + math.cos(_bgAnimation.value * math.pi * 3) * 0.3,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+
+          // ── Main content ──
+          SafeArea(
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height -
+                      MediaQuery.of(context).padding.top -
+                      MediaQuery.of(context).padding.bottom,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      const Spacer(flex: 4),
+                      _buildLogo(),
+                      const SizedBox(height: 12),
+                      _buildTitle(),
+                      const Spacer(flex: 1),
+                      if (_showFeatures) _buildFeatureCard(),
+                      const SizedBox(height: 12),
+                      _buildStats(),
+                      const SizedBox(height: 12),
+                      _buildBottom(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogo() {
+    return AnimatedBuilder(
+      animation: _logoController,
+      builder: (context, _) {
+        return FadeTransition(
+          opacity: _logoFade,
+          child: Transform.rotate(
+            angle: _logoRotate.value,
+            child: ScaleTransition(
+              scale: _logoScale,
+              child: AnimatedBuilder(
+                animation: _pulseAnimation,
+                builder: (context, _) {
+                  return Transform.scale(
+                    scale: _pulseAnimation.value,
+                    child: Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF60A5FA),
+                            Color(0xFF1E3A8A),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF3B82F6).withOpacity(0.6),
+                            blurRadius: 30,
+                            spreadRadius: 5,
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.5),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          "iS",
+                          style: TextStyle(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: -2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTitle() {
+    return FadeTransition(
+      opacity: _contentFade,
+      child: SlideTransition(
+        position: _contentSlide,
+        child: Column(
+          children: [
+            const Text(
+              "ISHARE",
+              style: TextStyle(
+                fontSize: 42,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 8,
+                shadows: [
+                  Shadow(
+                    color: Colors.black54,
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                color: Colors.black.withOpacity(0.35),
+              ),
+              child: const Text(
+                "Ride Smart • Ride Together",
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.white70,
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard() {
+    final feature = _features[_currentFeature];
+    return FadeTransition(
+      opacity: _featuresFade,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            color: Colors.black.withOpacity(0.3),
+            border: Border.all(
+              color: const Color(0xFF3B82F6).withOpacity(0.4),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3B82F6).withOpacity(0.15),
+                blurRadius: 30,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF3B82F6).withOpacity(0.2),
+                  border: Border.all(
+                    color: const Color(0xFF3B82F6).withOpacity(0.6),
+                    width: 1.5,
+                  ),
+                ),
+                child: Icon(
+                  feature['icon'] as IconData,
+                  color: const Color(0xFF60A5FA),
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      feature['title'] as String,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      feature['subtitle'] as String,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStats() {
+    return FadeTransition(
+      opacity: _contentFade,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.black.withOpacity(0.25),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStat("🚗", "Drivers", "Easy"),
+              Container(width: 1, height: 36, color: Colors.white24),
+              _buildStat("👥", "Passengers", "Safe"),
+              Container(width: 1, height: 36, color: Colors.white24),
+              _buildStat("🇷🇼", "Rwanda", "First"),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStat(String emoji, String label, String value) {
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 22)),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+              fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        Text(
+          label,
+          style: TextStyle(fontSize: 10, color: Colors.white.withOpacity(0.5)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottom() {
+    return FadeTransition(
+      opacity: _contentFade,
+      child: Column(
+        children: [
+          // Dots indicator
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(_features.length, (index) {
+              final isActive = index == _currentFeature;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: isActive ? 20 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(3),
+                  color: isActive
+                      ? const Color(0xFF3B82F6)
+                      : Colors.white.withOpacity(0.3),
+                ),
+              );
+            }),
+          ),
+
+          const SizedBox(height: 28),
+
+          // Get Started button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: GestureDetector(
+              onTap: _navigate,
+              child: AnimatedBuilder(
+                animation: _pulseAnimation,
+                builder: (context, _) {
+                  return Transform.scale(
+                    scale: _pulseAnimation.value,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF3B82F6).withOpacity(0.5),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Get Started",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Icon(Icons.arrow_forward_rounded,
+                              color: Colors.white, size: 22),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          Text(
+            "Made in Rwanda 🇷🇼",
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.4),
+              letterSpacing: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
