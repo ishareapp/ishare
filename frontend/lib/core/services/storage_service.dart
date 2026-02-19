@@ -5,7 +5,7 @@ import '../../core/extensions/translation_extension.dart';
 
 class StorageService {
   static const _storage = FlutterSecureStorage();
-  static const String baseUrl = "https://striking-charm-production-fbce.up.railway.app/api";
+  static const String baseUrl = "https://striking-charm-production-2be7.up.railway.app/api";
 
   static Future<void> saveToken(String token) async {
     await _storage.write(key: "jwt_token", value: token);
