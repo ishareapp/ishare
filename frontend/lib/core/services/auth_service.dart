@@ -5,7 +5,7 @@ import '../../core/extensions/translation_extension.dart';
 
 class AuthService {
 
-  static const String baseUrl = "http://127.0.0.1:8000/api";
+  static const String baseUrl = "https://striking-charm-production-fbce.up.railway.app/api";
 
   static Future<Map<String, dynamic>> login(
       String email,
