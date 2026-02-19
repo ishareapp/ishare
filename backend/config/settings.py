@@ -3,6 +3,13 @@ from decouple import config
 import firebase_admin
 from firebase_admin import credentials
 import os
+import dj_database_url
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+    )
+}
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -10,7 +17,7 @@ SECRET_KEY = config('SECRET_KEY', default='unsafe-secret')
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -91,7 +98,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
@@ -118,7 +125,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'murenzicharles24@gmail.com'
 EMAIL_HOST_PASSWORD = 'flim xcom shed shwe'
-SITE_URL = 'http://127.0.0.1:8000' 
+SITE_URL = config('SITE_URL', default='http://127.0.0.1:8000')
 
 # ADD THESE CORS SETTINGS
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
