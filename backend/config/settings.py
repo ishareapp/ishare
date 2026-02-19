@@ -178,3 +178,9 @@ CHANNEL_LAYERS = {
 # backend/config/settings.py
 
 USE_MOCK_PAYMENT = True
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
