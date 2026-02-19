@@ -18,6 +18,12 @@ class User(AbstractUser):
     email_verified = models.BooleanField(default=False)
     email_verification_token = models.CharField(max_length=100, blank=True, null=True)
     fcm_token = models.CharField(max_length=255, blank=True, null=True)  # For push notifications
+    email_verification_code = models.CharField(max_length=6, null=True, blank=True)
+    code_created_at = models.DateTimeField(null=True, blank=True)
+    email = models.EmailField(unique=True)
+    role = models.CharField(max_length=20, choices=[('driver', 'Driver'), ('passenger', 'Passenger')])
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    email_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'phone', 'role']

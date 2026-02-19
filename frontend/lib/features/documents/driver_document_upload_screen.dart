@@ -192,12 +192,7 @@ class _DriverDocumentUploadScreenState extends State<DriverDocumentUploadScreen>
     }
   }
 
-  void _skipForNow() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const MainNavigation()),
-    );
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -286,17 +281,7 @@ class _DriverDocumentUploadScreenState extends State<DriverDocumentUploadScreen>
               ),
             ),
             
-            const SizedBox(height: 16),
             
-            Center(
-              child: TextButton(
-                onPressed: _skipForNow,
-                child: const Text(
-                  "Skip for now",
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            ),
           ],
         ),
       ),

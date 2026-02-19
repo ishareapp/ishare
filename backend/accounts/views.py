@@ -14,6 +14,10 @@ from datetime import date, timedelta
 from rest_framework import status
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+import random
+from .models import User
 import secrets
 from rest_framework.parsers import MultiPartParser, FormParser
 from datetime import datetime
@@ -24,6 +28,7 @@ from django.db.models.functions import TruncDate, TruncMonth
 from datetime import datetime, timedelta
 from decimal import Decimal
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 
 User = get_user_model()
 import logging
@@ -483,6 +488,7 @@ class VerifyEmailView(APIView):
                 {"error": "Invalid or expired verification token"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+            
 
 class UploadDriverDocumentsView(APIView):
     """Upload driver documents"""
@@ -1087,6 +1093,171 @@ class MyRatingsView(APIView):
             'total_ratings': ratings.count(),
             'ratings': ratings_data,
         })
+
+
+
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def send_email_verification_code(request):
+    """
+    Generate and send a 6-digit verification code to user's email
+    """
+    user = request.user
+    
+    if user.email_verified:
+        return Response(
+            {"message": "Email already verified"},
+            status=status.HTTP_200_OK
+        )
+    
+    # Generate 6-digit code
+    code = str(random.randint(100000, 999999))
+    
+    # Store code in user model (you'll need to add these fields)
+    user.email_verification_code = code
+    user.code_created_at = timezone.now()
+    user.save()
+    
+    # Send email
+    subject = "ISHARE - Email Verification Code"
+    message = f"""
+    Hello {user.username},
+    
+    Your ISHARE email verification code is:
+    
+    {code}
+    
+    This code will expire in 10 minutes.
+    
+    If you didn't request this code, please ignore this email.
+    
+    Best regards,
+    ISHARE Team
+    Made in Rwanda 🇷🇼
+    """
+    
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        
+        return Response(
+            {"message": "Verification code sent successfully"},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_email_code(request):
+    """
+    Verify the 6-digit code entered by user
+    """
+    user = request.user
+    code = request.data.get('code')
+    
+    if not code:
+        return Response(
+            {"message": "Code is required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if user.email_verified:
+        return Response(
+            {"message": "Email already verified"},
+            status=status.HTTP_200_OK
+        )
+    
+    # Check if code exists
+    if not hasattr(user, 'email_verification_code') or not user.email_verification_code:
+        return Response(
+            {"message": "No verification code found. Please request a new one."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Check if code expired (10 minutes)
+    if user.code_created_at:
+        expiry_time = user.code_created_at + timedelta(minutes=10)
+        if timezone.now() > expiry_time:
+            return Response(
+                {"message": "Code expired. Please request a new one."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    # Verify code
+    if user.email_verification_code == code:
+        user.email_verified = True
+        user.email_verification_code = None  # Clear the code
+        user.code_created_at = None
+        user.save()
+        
+        return Response(
+            {"message": "Email verified successfully!"},
+            status=status.HTTP_200_OK
+        )
+    else:
+        return Response(
+            {"message": "Invalid code. Please try again."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -21,7 +21,9 @@ from .views import (
     AdminTopDriversView,
     AdminRecentActivityView,
     UpdateProfileView,
-    MyRatingsView
+    MyRatingsView,
+    send_email_verification_code,
+    verify_email_code,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -33,7 +35,8 @@ urlpatterns = [
     path('admin/dashboard/', AdminDashboardView.as_view()),
     path('profile/update/', UpdateProfileView.as_view(), name='update_profile'),
     path('my-ratings/', MyRatingsView.as_view(), name='my_ratings'),
-    
+    path('send-email-verification/', send_email_verification_code, name='send_email_verification_code'),
+    path('verify-email-code/', verify_email_code, name='verify_email_code'),
     # User info
     path('me/', CurrentUserView.as_view(), name='current_user'),
     

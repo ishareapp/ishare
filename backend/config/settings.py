@@ -3,15 +3,13 @@ from decouple import config
 import firebase_admin
 from firebase_admin import credentials
 import os
-import json
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ======================
-# Django basic settings
-# ======================
 SECRET_KEY = config('SECRET_KEY', default='unsafe-secret')
+
 DEBUG = config('DEBUG', default=True, cast=bool)
+
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
@@ -29,6 +27,10 @@ INSTALLED_APPS = [
     'chat',
     'channels',
     'wallet',
+    
+    
+
+
 ]
 
 MIDDLEWARE = [
@@ -61,7 +63,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-ASGI_APPLICATION = "config.asgi.application"
 
 DATABASES = {
     'default': {
@@ -71,10 +72,18 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -83,17 +92,12 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
-# ======================
-# JWT Authentication
-# ======================
 from datetime import timedelta
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -105,10 +109,10 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
-# ======================
-# Email
-# ======================
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 
+
+# ... existing code ...
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
@@ -116,52 +120,60 @@ EMAIL_HOST_USER = 'murenzicharles24@gmail.com'
 EMAIL_HOST_PASSWORD = 'flim xcom shed shwe'
 SITE_URL = 'http://127.0.0.1:8000' 
 
-# ======================
-# CORS
-# ======================
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_METHODS = ['DELETE','GET','OPTIONS','PATCH','POST','PUT']
-CORS_ALLOW_HEADERS = [
-    'accept','accept-encoding','authorization','content-type',
-    'dnt','origin','user-agent','x-csrftoken','x-requested-with'
+# ADD THESE CORS SETTINGS
+CORS_ALLOW_ALL_ORIGINS = True  # For development only
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
-# ======================
-# Firebase Admin
-# ======================
-# Option 1: Read from local file (for development)
-local_firebase_path = os.path.join(BASE_DIR, 'firebase-credentials.json')
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-credentials.json')
 
-# Option 2: Read from environment variable (for deployment)
-firebase_env = os.environ.get("FIREBASE_CREDENTIALS")
-
-if firebase_env:
+# Initialize Firebase Admin (only if file exists)
+if os.path.exists(FIREBASE_CREDENTIALS_PATH):
     try:
-        cred = credentials.Certificate(json.loads(firebase_env))
+        cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
         firebase_admin.initialize_app(cred)
-        print("✅ Firebase initialized from environment variable")
-    except Exception as e:
-        print(f"❌ Firebase initialization failed: {e}")
-elif os.path.exists(local_firebase_path):
-    try:
-        cred = credentials.Certificate(local_firebase_path)
-        firebase_admin.initialize_app(cred)
-        print("✅ Firebase initialized from local file")
+        print("✅ Firebase initialized successfully")
     except Exception as e:
         print(f"❌ Firebase initialization failed: {e}")
 else:
-    print("⚠️ Firebase credentials not found! Firebase will not work")
+    print("⚠️  Firebase credentials file not found")
 
-# ======================
-# Channels
-# ======================
+# ===================================
+# Media Files Configuration
+# ===================================
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Create media directory if it doesn't exist
+os.makedirs(MEDIA_ROOT, exist_ok=True)    
+
+ASGI_APPLICATION = "config.asgi.application"
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
+# backend/config/settings.py
 
-# ======================
-# Other settings
-# ======================
 USE_MOCK_PAYMENT = True

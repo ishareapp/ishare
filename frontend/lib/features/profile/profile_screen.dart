@@ -23,17 +23,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserInfo() async {
-    try {
-      final info = await AuthService.getCurrentUser();
-      setState(() {
-        userInfo = info;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() => isLoading = false);
-    }
+  try {
+    final info = await AuthService.getCurrentUser();
+    print("USER INFO: $info"); // ← add here
+    setState(() {
+      userInfo = info;
+      isLoading = false;
+    });
+  } catch (e) {
+    print("ERROR: $e"); // ← and here
+    setState(() => isLoading = false);
   }
-
+}
   Future<void> _logout(BuildContext context) async {
     await StorageService.clearAll();
 
@@ -185,6 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
 
             const Spacer(),
+            
 
             /// Logout Button
             SizedBox(
