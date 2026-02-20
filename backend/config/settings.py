@@ -4,6 +4,7 @@ import firebase_admin
 from firebase_admin import credentials
 import os
 import dj_database_url
+import json
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -144,19 +145,19 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
-FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-credentials.json')
+# Initialize Firebase Admin
+FIREBASE_CREDENTIALS_JSON = os.environ.get("FIREBASE_CREDENTIALS")
 
-# Initialize Firebase Admin (only if file exists)
-if os.path.exists(FIREBASE_CREDENTIALS_PATH):
+if FIREBASE_CREDENTIALS_JSON:
     try:
-        cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+        cred_dict = json.loads(FIREBASE_CREDENTIALS_JSON)
+        cred = credentials.Certificate(cred_dict)
         firebase_admin.initialize_app(cred)
         print("✅ Firebase initialized successfully")
     except Exception as e:
         print(f"❌ Firebase initialization failed: {e}")
 else:
-    print("⚠️  Firebase credentials file not found")
-
+    print("⚠️  Firebase credentials not found")
 # ===================================
 # Media Files Configuration
 # ===================================
