@@ -5,7 +5,6 @@ from firebase_admin import credentials
 import os
 import dj_database_url
 import json
-import sys
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,9 +18,6 @@ DATABASES = {
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
     )
 }
-
-print(f"🔍 DATABASE URL: {os.environ.get('DATABASE_URL', 'NOT SET')}", file=sys.stderr)
-print(f"🔍 PORT: {os.environ.get('PORT', 'NOT SET')}", file=sys.stderr)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
