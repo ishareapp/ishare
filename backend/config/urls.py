@@ -6,7 +6,7 @@ from django.http import JsonResponse
 
 def api_root(request):
     return JsonResponse({
-        "message": "Ride Sharing API is running 🚀",
+        "message": "Ride Sharing API is running",
         "endpoints": {
             "accounts": "/api/accounts/",
             "rides": "/api/rides/",
