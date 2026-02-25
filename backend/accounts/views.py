@@ -798,10 +798,12 @@ def send_email_verification_code(request):
     user.code_created_at = timezone.now()
     user.save()
 
-    # Print code to console (for testing)
-    print(f"📧 VERIFICATION CODE FOR {user.email}: {code}")
-    
-    # Always return success (even if email fails)
+    # ✅ Actually send the email now
+    try:
+        send_verification_email(user.email, user.username, code)
+    except Exception as e:
+        logger.warning(f"Verification email failed: {e}")
+
     return Response({
         "message": "Verification code sent successfully"
     }, status=status.HTTP_200_OK)
