@@ -126,10 +126,9 @@ class CheckSubscriptionStatusView(APIView):
 
 
 class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
-
+    queryset = User.objects.all()                  # ✅ missing
+    serializer_class = RegisterSerializer          # ✅ missing
+    permission_classes = [AllowAny]               # ✅ missing
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -143,10 +142,13 @@ class RegisterView(generics.CreateAPIView):
             is_trial=True,
         )
 
-        send_welcome_email(user.email, user.username, user.role)
+        # ✅ Fix: don't let email failure block registration
+        try:
+            send_welcome_email(user.email, user.username, user.role)
+        except Exception as e:
+            logger.warning(f"Welcome email failed (non-critical): {e}")
 
         refresh = RefreshToken.for_user(user)
-
         return Response({
             "user": serializer.data,
             "refresh": str(refresh),

@@ -9,13 +9,11 @@ def send_verification_email(user_email, username, code):
     sender_email = os.environ.get('EMAIL_HOST_USER', 'murenzicharles24@gmail.com')
     sender_password = os.environ.get('EMAIL_HOST_PASSWORD', '')
     
-    # Create message
     msg = MIMEMultipart('alternative')
     msg['Subject'] = "ISHARE - Your Verification Code"
     msg['From'] = sender_email
     msg['To'] = user_email
     
-    # Plain text
     text = f"""
 Hello {username},
 
@@ -27,7 +25,6 @@ Made in Rwanda 🇷🇼
 ISHARE Team
     """
     
-    # HTML version
     html = f"""
     <html>
     <body style="font-family: Arial, sans-serif; background-color: #f0f4ff; padding: 20px;">
@@ -66,7 +63,7 @@ ISHARE Team
     msg.attach(MIMEText(html, 'html'))
     
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)  # ✅ timeout added
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, user_email, msg.as_string())
@@ -125,7 +122,7 @@ def send_welcome_email(user_email, username, role):
     msg.attach(MIMEText(html, 'html'))
     
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)  # ✅ timeout added
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, user_email, msg.as_string())
