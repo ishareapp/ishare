@@ -72,7 +72,7 @@ ISHARE Team
 def send_welcome_email(user_email, username, role):
     """Send welcome email after registration via Resend"""
 
-    sender_email = os.environ.get('EMAIL_HOST_USER', 'noreply@yourdomain.com')
+    sender_email = os.environ.get('EMAIL_HOST_USER', 'onboarding@resend.dev')
 
     html = f"""
     <html>
