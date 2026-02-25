@@ -784,8 +784,6 @@ class MyRatingsView(APIView):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def send_email_verification_code(request):
     user = request.user
 
@@ -805,7 +803,7 @@ def send_email_verification_code(request):
     return Response({
         "message": "Verification code sent successfully"
     }, status=status.HTTP_200_OK)
-    
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def verify_email_code(request):
