@@ -1,19 +1,14 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import resend
 import os
 
+resend.api_key = os.environ.get('RESEND_API_KEY', '')
+
+
 def send_verification_email(user_email, username, code):
-    """Send verification code email directly via SMTP"""
-    
-    sender_email = os.environ.get('EMAIL_HOST_USER', 'murenzicharles24@gmail.com')
-    sender_password = os.environ.get('EMAIL_HOST_PASSWORD', '')
-    
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = "ISHARE - Your Verification Code"
-    msg['From'] = sender_email
-    msg['To'] = user_email
-    
+    """Send verification code email via Resend"""
+
+    sender_email = os.environ.get('EMAIL_HOST_USER', 'onboarding@resend.dev')
+
     text = f"""
 Hello {username},
 
@@ -24,7 +19,7 @@ This code expires in 10 minutes.
 Made in Rwanda 🇷🇼
 ISHARE Team
     """
-    
+
     html = f"""
     <html>
     <body style="font-family: Arial, sans-serif; background-color: #f0f4ff; padding: 20px;">
@@ -58,16 +53,15 @@ ISHARE Team
     </body>
     </html>
     """
-    
-    msg.attach(MIMEText(text, 'plain'))
-    msg.attach(MIMEText(html, 'html'))
-    
+
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)  # ✅ timeout added
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, user_email, msg.as_string())
-        server.quit()
+        resend.Emails.send({
+            "from": f"ISHARE <{sender_email}>",
+            "to": user_email,
+            "subject": "ISHARE - Your Verification Code",
+            "html": html,
+            "text": text,
+        })
         print(f"✅ Verification email sent to {user_email}")
         return True
     except Exception as e:
@@ -76,16 +70,10 @@ ISHARE Team
 
 
 def send_welcome_email(user_email, username, role):
-    """Send welcome email after registration"""
-    
-    sender_email = os.environ.get('EMAIL_HOST_USER', 'murenzicharles24@gmail.com')
-    sender_password = os.environ.get('EMAIL_HOST_PASSWORD', '')
-    
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = "Welcome to ISHARE! 🎉"
-    msg['From'] = sender_email
-    msg['To'] = user_email
-    
+    """Send welcome email after registration via Resend"""
+
+    sender_email = os.environ.get('EMAIL_HOST_USER', 'noreply@yourdomain.com')
+
     html = f"""
     <html>
     <body style="font-family: Arial, sans-serif; background-color: #f0f4ff; padding: 20px;">
@@ -118,15 +106,14 @@ def send_welcome_email(user_email, username, role):
     </body>
     </html>
     """
-    
-    msg.attach(MIMEText(html, 'html'))
-    
+
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)  # ✅ timeout added
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, user_email, msg.as_string())
-        server.quit()
+        resend.Emails.send({
+            "from": f"ISHARE <{sender_email}>",
+            "to": user_email,
+            "subject": "Welcome to ISHARE! 🎉",
+            "html": html,
+        })
         print(f"✅ Welcome email sent to {user_email}")
         return True
     except Exception as e:

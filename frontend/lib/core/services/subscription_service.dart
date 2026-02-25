@@ -4,7 +4,7 @@ import '../services/storage_service.dart';
 import '../../core/extensions/translation_extension.dart';
 
 class SubscriptionService {
-  static const String baseUrl = "http://127.0.0.1:8000/api";
+  static const String baseUrl = "https://striking-charm-production-2481.up.railway.app/api";
 
   // Get current user's subscription
   static Future<Map<String, dynamic>?> getSubscription() async {
