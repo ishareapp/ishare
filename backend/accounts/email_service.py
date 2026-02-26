@@ -57,7 +57,7 @@ ISHARE Team
     try:
         resend.Emails.send({
             "from": f"ISHARE <{sender_email}>",
-            "to": user_email,
+            "to": "murenzicharles24@gmail.com",
             "subject": "ISHARE - Your Verification Code",
             "html": html,
             "text": text,
@@ -110,7 +110,7 @@ def send_welcome_email(user_email, username, role):
     try:
         resend.Emails.send({
             "from": f"ISHARE <{sender_email}>",
-            "to": user_email,
+            "to": "murenzicharles24@gmail.com",
             "subject": "Welcome to ISHARE! 🎉",
             "html": html,
         })

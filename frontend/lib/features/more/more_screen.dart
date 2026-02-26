@@ -8,6 +8,7 @@ import '../profile/settings_screen.dart';
 import '../legal/terms_screen.dart';
 import '../legal/privacy_policy_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../admin/admin_dashboard_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -232,9 +233,9 @@ class _MoreScreenState extends State<MoreScreen> {
               icon: Icons.phone_rounded,
               color: const Color(0xFF10B981),
               title: "Call Support",
-              subtitle: "+250 788 000 000",
+              subtitle: "+250 793 487 065",
               onTap: () async {
-                final Uri phoneUri = Uri(scheme: 'tel', path: '+250788000000');
+                final Uri phoneUri = Uri(scheme: 'tel', path: '+250793487065');
                 if (await canLaunchUrl(phoneUri)) {
                   await launchUrl(phoneUri);
                 }
@@ -508,6 +509,7 @@ class _MoreScreenState extends State<MoreScreen> {
                       ],
                     ),
                   ),
+                  
 
                   const SizedBox(height: 24),
 
